@@ -71,7 +71,7 @@ public class Processo extends Thread{
                 Principal.processesRequests.set(ID-1, requestVector);
                 setTable("Solicitando");
                 Principal.logAdd(ID, "Solicitando: "+Principal.resourceNames.get(random_rID));
-                Principal.solicited_rID.set(ID, random_rID);
+                Principal.solicited_rID.set(ID-1, random_rID);
                 Principal.MUTEX.release();
             } catch(InterruptedException e){}
 
@@ -155,10 +155,8 @@ public class Processo extends Thread{
         return (time%Ts == 0);
     }
     
-    public static boolean excluir_processo(){
+    public static void excluir_processo(){
         alive = false;
-        
-        return true;
     }
     
     public int get_id(){

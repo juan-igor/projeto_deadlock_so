@@ -368,12 +368,7 @@ public class Principal extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(null, "Erro! É Necessário digitar o tempo de espera do S.O!!\nDigite novamente...", "Atenção", JOptionPane.INFORMATION_MESSAGE);
                 }
                 else{
-                    if(!jtf_qtd.getText().contains(",")){
-                        SOinterval = (long) (parseFloat(jtf_qtd.getText())*1000);
-                    }
-                    else{
-                        SOinterval = (long) (parseFloat(jtf_qtd.getText().replace(',', '.'))*1000);
-                    }
+                    SOinterval = (long) (parseInt(jtf_qtd.getText())*1000);
                     loop = false;
                 }
             }
