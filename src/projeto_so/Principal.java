@@ -40,6 +40,7 @@ public class Principal extends javax.swing.JFrame {
     public static ArrayList<Processo> processes = new ArrayList<>();
     public static ArrayList<int[]> processesUtilizing = new ArrayList<>();
     public static ArrayList<int[]> processesRequests = new ArrayList<>();
+    public static ArrayList<Integer> solicited_rID = new ArrayList<>();
     public static int[] resourcesInstancies;
 
     public static Semaphore MUTEX = new Semaphore(1);
@@ -485,7 +486,7 @@ public class Principal extends javax.swing.JFrame {
     private void addProcessInTable(int pID){     
         if(!tableCreated){
             String[] columns = {
-                "ID do Processo",
+                "ID",
                 "Status",
                 "Recursos em utilização",
                 "Solicitando recursos"
@@ -701,11 +702,13 @@ public class Principal extends javax.swing.JFrame {
                             processes.set(processID-1, temp_process);
                             processesUtilizing.set(processID-1, resources);
                             processesRequests.set(processID-1, resources);
+                            solicited_rID.set(processID-1, -1);
                         }
                         else{
                             processes.add(temp_process);
                             processesUtilizing.add(resources);
                             processesRequests.add(resources);
+                            solicited_rID.add(-1);
                         }
                         
                         temp_process.start();
@@ -780,6 +783,9 @@ public class Principal extends javax.swing.JFrame {
             int id = IDs.get(jcb_id.getSelectedIndex());
             boolean retorno = false;
             
+            if(solicited_rID.get(id) >= 0 ){
+                resourceSemaphores.get(solicited_rID.get(id)).release();
+            }
             processes.get(id).excluir_processo();
             processes.set(id, null);
             processesRequests.set(id, null);

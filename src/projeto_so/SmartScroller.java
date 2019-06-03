@@ -6,6 +6,11 @@ import javax.swing.*;
 import javax.swing.text.*;
 
 /**
+ * Classe Externa, da Web, apenas para deixar o Scroll do ScrollPane sempre
+ * na parte debaixo assim exibindo a ultima informação inserida no LOG.
+ */
+
+/**
  *  The SmartScroller will attempt to keep the viewport positioned based on
  *  the users interaction with the scrollbar. The normal behaviour is to keep
  *  the viewport positioned to see new data as it is dynamically added.

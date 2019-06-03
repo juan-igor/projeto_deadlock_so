@@ -48,11 +48,13 @@ public class Processo extends Thread{
             
             if(solicitar()) solicita_recurso();
             
-            try {
-                sleep(1000);
-            } catch (InterruptedException ex) {}
-            finally{
-                time++;
+            if(alive){
+                try {
+                    sleep(1000);
+                } catch (InterruptedException ex) {}
+                finally{
+                    time++;
+                }
             }
         }
     }
@@ -69,28 +71,34 @@ public class Processo extends Thread{
                 Principal.processesRequests.set(ID-1, requestVector);
                 setTable("Solicitando");
                 Principal.logAdd(ID, "Solicitando: "+Principal.resourceNames.get(random_rID));
+                Principal.solicited_rID.set(ID, random_rID);
+                Principal.MUTEX.release();
             } catch(InterruptedException e){}
-            Principal.MUTEX.release();
 
             try {
                 if(Principal.resourceSemaphores.get(random_rID).availablePermits() == 0){
                     setTable("Aguardando Recurso");
                 }
-                Principal.resourceSemaphores.get(random_rID).acquireUninterruptibly();
-                Principal.MUTEX.acquire();
-                requestVector[random_rID]--;
-                Principal.processesRequests.set(ID-1, requestVector);
-                sResources = "Nenhum";
-                if(!utilizingResourcesNames.contains(Principal.resourceNames.get(random_rID))){
-                    utilizingResourcesNames.add(Principal.resourceNames.get(random_rID));
+                Principal.resourceSemaphores.get(random_rID).acquire();
+                if(alive){
+                    Principal.MUTEX.acquire();
+                    requestVector[random_rID]--;
+                    Principal.solicited_rID.set(ID, -1);
+                    Principal.processesRequests.set(ID-1, requestVector);
+                    sResources = "Nenhum";
+                    if(!utilizingResourcesNames.contains(Principal.resourceNames.get(random_rID))){
+                        utilizingResourcesNames.add(Principal.resourceNames.get(random_rID));
+                    }
+                    utilizingResourcesIDs.add(random_rID);
+                    resourcesVector[random_rID]++;
+                    Principal.processesUtilizing.set(ID-1, resourcesVector);
+                    resourceCollectedTime.add(time);
+                    setTable("Executando");
+                    Principal.MUTEX.release();
+                } else{
+                    Principal.resourceSemaphores.get(random_rID).release();
                 }
-                utilizingResourcesIDs.add(random_rID);
-                resourcesVector[random_rID]++;
-                Principal.processesUtilizing.set(ID-1, resourcesVector);
-                resourceCollectedTime.add(time);
             } catch (InterruptedException ex) {}
-            setTable("Executando");
-            Principal.MUTEX.release();
         }
     }
     
