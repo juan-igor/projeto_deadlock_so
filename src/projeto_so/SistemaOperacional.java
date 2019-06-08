@@ -21,6 +21,7 @@ public class SistemaOperacional extends Thread{
     private boolean alive = true;
     private int[] freeResourcesQtt;
     private ArrayList<Boolean> DLprocesses;
+    private boolean msgTypeNDL = false;
     
     public SistemaOperacional(){
         this.interval = Principal.SOinterval;
@@ -41,7 +42,7 @@ public class SistemaOperacional extends Thread{
         if(!Principal.processes.isEmpty()){
             try { Principal.MUTEX.acquire(); } catch (InterruptedException ex) {}
             DLprocesses = getFalseArrayList(Principal.processes.size());
-            freeResourcesQtt = getFreeResources();
+            freeResourcesQtt = Principal.getFreeResources();
             int[][] requestMatrix = getRequestMatrix();
             int[][] alocationMatrix = getAlocationMatrix();
             int markedProcesses = 0, flag;
@@ -101,35 +102,28 @@ public class SistemaOperacional extends Thread{
         String message = "";
         ArrayList<Integer> deadLockProcesses = new ArrayList<>();
         int i;
-        
+
         for(i=0; i<DLprocesses.size(); i++){
             if(DLprocesses.get(i)){
-                deadLockProcesses.add(i);
+                deadLockProcesses.add(i+1);
             }
         }
-        
+
         for(i=0; i<deadLockProcesses.size()-1; i++){
-            message += (i+1)+", ";
+            message += deadLockProcesses.get(i)+", ";
         }
-        message += (i+1);
-        
+        message += deadLockProcesses.get(i);
+
         Principal.DL_logAdd(message);
+        
+        msgTypeNDL = false;
     }
     
     private void showNoDeadLock(){
-        Principal.NoDL_logAdd();
-    }
-    
-    
-    
-    private int[] getFreeResources(){
-        int[] vector = new int[Principal.resources_qtt];
-        
-        for(int i=0; i<Principal.resources_qtt; i++){
-            vector[i] = Principal.resourceSemaphores.get(i).availablePermits();
+        if(!msgTypeNDL){
+            Principal.NoDL_logAdd();
+            msgTypeNDL = true;
         }
-        
-        return vector;
     }
     
     private int[][] getRequestMatrix(){

@@ -18,7 +18,7 @@ import javax.swing.JLabel;
  */
 public class Processo extends Thread{
     
-    private int ID, Ts, Tu, time = 0;
+    private int ID, Ts, Tu, time = 0, max_rID = Principal.resources_qtt, random_rID = 0;
     private int[] resourcesVector = new int[Principal.resources_qtt];
     private int[] requestVector = new int[Principal.resources_qtt];
     private static boolean alive = true;
@@ -43,27 +43,43 @@ public class Processo extends Thread{
     
     @Override
     public void run(){
-        while(alive){
-            if(liberar()) libera_recurso();
+        while(Principal.processIsAlive.get(ID-1)){
+            //if(liberar()) libera_recurso();
             
             if(solicitar()) solicita_recurso();
             
-            if(alive){
+            if(Principal.processIsAlive.get(ID-1)){
                 try {
                     sleep(1000);
                 } catch (InterruptedException ex) {}
                 finally{
                     time++;
                 }
+                if(liberar()) libera_recurso();
             }
         }
+        try {
+            Principal.MUTEX.acquire();
+        } catch (InterruptedException ex) {}
+        Principal.logRemoveProcess(ID);
+        Principal.removeProcessInTable(ID);
+        Principal.removeAlocationMatrixRow(ID);
+        Principal.deletingProcessID.set(ID-1, false);
+        if(Principal.processQtt == 0){
+            Principal.processIsAlive.clear();
+            Principal.deletingProcessID.clear();
+        }
+        for(int i=0; i< resourcesVector.length; i++){
+            Principal.resourceSemaphores.get(i).release(resourcesVector[i]);
+        }
+        Principal.setFreeResourcesTable();
+        Principal.MUTEX.release();
     }
     
     private void solicita_recurso(){
-        int max_rID = Principal.resources_qtt;
-        int random_rID = (int) (IDgenerator.nextInt(max_rID));
+        random_rID = (int) (IDgenerator.nextInt(max_rID));
         
-        if(!(resourcesVector[random_rID] == Principal.resourcesInstancies[random_rID])){
+        if(!(resourcesVector[random_rID] == Principal.resourcesInstancies[random_rID]) && Principal.processIsAlive.get(ID-1)){
             try{
                 Principal.MUTEX.acquire();
                 sResources = Principal.resourceNames.get(random_rID);
@@ -79,24 +95,28 @@ public class Processo extends Thread{
                 if(Principal.resourceSemaphores.get(random_rID).availablePermits() == 0){
                     setTable("Aguardando Recurso");
                 }
-                Principal.resourceSemaphores.get(random_rID).acquire();
-                if(alive){
+                if(Principal.processIsAlive.get(ID-1)){
+                    Principal.resourceSemaphores.get(random_rID).acquire();
+                }
+                if(Principal.deletingProcessID.contains(true) && Principal.processIsAlive.get(ID-1)){
+                    Principal.resourceSemaphores.get(random_rID).release();
+                    sleep(500);
+                    Principal.resourceSemaphores.get(random_rID).acquire();
+                }else if(Principal.processIsAlive.get(ID-1)){
                     Principal.MUTEX.acquire();
                     requestVector[random_rID]--;
-                    Principal.solicited_rID.set(ID, -1);
+                    Principal.solicited_rID.set(ID-1, -1);
                     Principal.processesRequests.set(ID-1, requestVector);
                     sResources = "Nenhum";
-                    if(!utilizingResourcesNames.contains(Principal.resourceNames.get(random_rID))){
-                        utilizingResourcesNames.add(Principal.resourceNames.get(random_rID));
-                    }
+                    utilizingResourcesNames.add(Principal.resourceNames.get(random_rID));
                     utilizingResourcesIDs.add(random_rID);
                     resourcesVector[random_rID]++;
                     Principal.processesUtilizing.set(ID-1, resourcesVector);
+                    Principal.setFreeResourcesTable();
+                    Principal.setAlocationMatrixRow(ID, resourcesVector);
                     resourceCollectedTime.add(time);
                     setTable("Executando");
                     Principal.MUTEX.release();
-                } else{
-                    Principal.resourceSemaphores.get(random_rID).release();
                 }
             } catch (InterruptedException ex) {}
         }
@@ -113,10 +133,14 @@ public class Processo extends Thread{
             utilizingResourcesIDs.remove(0);
             resourcesVector[rID]--;
             Principal.processesUtilizing.set(ID-1, resourcesVector);
-            if(!utilizingResourcesIDs.contains(rID)){
-               utilizingResourcesNames.remove(Principal.resourceNames.get(rID));
-            }
-            setTable("Executando");
+            Principal.setAlocationMatrixRow(ID, resourcesVector);
+            Principal.setFreeResourcesTable();
+//            if(!utilizingResourcesIDs.contains(rID)){
+//               utilizingResourcesNames.remove(Principal.resourceNames.get(rID));
+//            }
+            utilizingResourcesNames.remove(Principal.resourceNames.get(rID));
+            if(utilizingResourcesIDs.size() == 0) setTable("Ocioso");
+            else setTable("Executando");
             Principal.MUTEX.release();
         }catch(InterruptedException ex){}
         
@@ -153,10 +177,6 @@ public class Processo extends Thread{
     
     private boolean solicitar(){
         return (time%Ts == 0);
-    }
-    
-    public static void excluir_processo(){
-        alive = false;
     }
     
     public int get_id(){

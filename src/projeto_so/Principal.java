@@ -5,7 +5,6 @@
  */
 package projeto_so;
 
-import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -41,15 +40,17 @@ public class Principal extends javax.swing.JFrame {
     public static ArrayList<int[]> processesUtilizing = new ArrayList<>();
     public static ArrayList<int[]> processesRequests = new ArrayList<>();
     public static ArrayList<Integer> solicited_rID = new ArrayList<>();
+    public static ArrayList<Boolean> processIsAlive = new ArrayList<>();
+    public static ArrayList<Boolean> deletingProcessID = new ArrayList<>();
     public static int[] resourcesInstancies;
 
     public static Semaphore MUTEX = new Semaphore(1);
     
-    private static DefaultTableModel tableModel;
+    private static DefaultTableModel tableModelProcesses, tableModelMatrix, tableModelResources, tableModelResourcesExisting;
     private SistemaOperacional SO;
     private ArrayList<Integer> IDs;
-    private int processQtt = 0;
-    private boolean tableCreated = false;
+    public static int processQtt = 0;
+    private static boolean processesTableCreated = false, resourcesTableCreated = false, matrixTableCreated = false;
     private final DefaultFormatterFactory mask_int = new DefaultFormatterFactory(new NumberFormatter(new DecimalFormat("#0")));
     private final DefaultFormatterFactory mask_float = new DefaultFormatterFactory(new NumberFormatter(new DecimalFormat("#0.00")));
     
@@ -98,6 +99,16 @@ public class Principal extends javax.swing.JFrame {
         jP_DLlog = new javax.swing.JPanel();
         jSP_DLlog = new javax.swing.JScrollPane();
         jtaDLlog = new javax.swing.JTextArea();
+        jP_mra = new javax.swing.JPanel();
+        jSP_mra = new javax.swing.JScrollPane();
+        jT_mra = new javax.swing.JTable();
+        jP_vr = new javax.swing.JPanel();
+        jP_re = new javax.swing.JPanel();
+        jSP_re = new javax.swing.JScrollPane();
+        jT_re = new javax.swing.JTable();
+        jP_rd = new javax.swing.JPanel();
+        jSP_rd = new javax.swing.JScrollPane();
+        jT_rd = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Projeto Sistema Operacional");
@@ -135,9 +146,9 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(jP_buttonsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(criar_processo_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 97, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(excluir_processo_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 98, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(sair_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -166,11 +177,11 @@ public class Principal extends javax.swing.JFrame {
         jP_Log.setLayout(jP_LogLayout);
         jP_LogLayout.setHorizontalGroup(
             jP_LogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSP_Log)
+            .addComponent(jSP_Log, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
         );
         jP_LogLayout.setVerticalGroup(
             jP_LogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSP_Log)
+            .addComponent(jSP_Log, javax.swing.GroupLayout.DEFAULT_SIZE, 366, Short.MAX_VALUE)
         );
 
         jP_processes.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Lista de Processos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.BELOW_TOP));
@@ -192,15 +203,14 @@ public class Principal extends javax.swing.JFrame {
         jP_processes.setLayout(jP_processesLayout);
         jP_processesLayout.setHorizontalGroup(
             jP_processesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jP_processesLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jP_processesLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jSP_processes)
-                .addContainerGap())
+                .addComponent(jSP_processes))
         );
         jP_processesLayout.setVerticalGroup(
             jP_processesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jP_processesLayout.createSequentialGroup()
-                .addComponent(jSP_processes, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
+                .addComponent(jSP_processes, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -217,11 +227,101 @@ public class Principal extends javax.swing.JFrame {
         jP_DLlog.setLayout(jP_DLlogLayout);
         jP_DLlogLayout.setHorizontalGroup(
             jP_DLlogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSP_DLlog)
+            .addComponent(jSP_DLlog, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
         );
         jP_DLlogLayout.setVerticalGroup(
             jP_DLlogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jSP_DLlog)
+        );
+
+        jP_mra.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Matriz de recursos alocados", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.BELOW_TOP));
+
+        jT_mra.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "pID", "R1", "R2", "R3"
+            }
+        ));
+        jSP_mra.setViewportView(jT_mra);
+
+        javax.swing.GroupLayout jP_mraLayout = new javax.swing.GroupLayout(jP_mra);
+        jP_mra.setLayout(jP_mraLayout);
+        jP_mraLayout.setHorizontalGroup(
+            jP_mraLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jP_mraLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jSP_mra)
+                .addContainerGap())
+        );
+        jP_mraLayout.setVerticalGroup(
+            jP_mraLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSP_mra, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+        );
+
+        jP_vr.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Vetor recursos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.BELOW_TOP));
+
+        jP_re.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Recursos Existentes", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.BELOW_TOP));
+
+        jT_re.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"1", "2", "3", "4"}
+            },
+            new String [] {
+                "R1", "R2", "R3", "R4"
+            }
+        ));
+        jSP_re.setViewportView(jT_re);
+
+        javax.swing.GroupLayout jP_reLayout = new javax.swing.GroupLayout(jP_re);
+        jP_re.setLayout(jP_reLayout);
+        jP_reLayout.setHorizontalGroup(
+            jP_reLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSP_re, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+        jP_reLayout.setVerticalGroup(
+            jP_reLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSP_re, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+
+        jP_rd.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Recursos Disponíveis", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.BELOW_TOP));
+
+        jT_rd.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"1", "2", "3", "4"}
+            },
+            new String [] {
+                "R1", "R2", "R3", "R4"
+            }
+        ));
+        jSP_rd.setViewportView(jT_rd);
+
+        javax.swing.GroupLayout jP_rdLayout = new javax.swing.GroupLayout(jP_rd);
+        jP_rd.setLayout(jP_rdLayout);
+        jP_rdLayout.setHorizontalGroup(
+            jP_rdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSP_rd, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+        jP_rdLayout.setVerticalGroup(
+            jP_rdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jSP_rd, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+
+        javax.swing.GroupLayout jP_vrLayout = new javax.swing.GroupLayout(jP_vr);
+        jP_vr.setLayout(jP_vrLayout);
+        jP_vrLayout.setHorizontalGroup(
+            jP_vrLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jP_vrLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jP_re, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jP_rd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        jP_vrLayout.setVerticalGroup(
+            jP_vrLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jP_rd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jP_re, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -231,10 +331,17 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jP_processes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jP_buttons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jP_Log, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jP_DLlog, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jP_mra, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jP_vr, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jP_processes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jP_Log, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jP_DLlog, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -243,11 +350,17 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jP_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jP_processes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jP_Log, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jP_DLlog, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jP_processes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jP_mra, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jP_Log, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jP_DLlog, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jP_vr, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -389,7 +502,6 @@ public class Principal extends javax.swing.JFrame {
         setSOinterval();
         setResourcesQtt();
         setResources();
-        setColumnStyle();
         
         resourceSemaphores = new ArrayList<>();
         resourceNames = new ArrayList<>();
@@ -408,6 +520,10 @@ public class Principal extends javax.swing.JFrame {
         SO = new SistemaOperacional();
         SO.start();
         
+        setResourcesTable(resourcesInstancies);
+        setFreeResourcesTable();
+        setAlocationMatrixColumns();
+        
     }
     
     private void logAddProcess(int pID, float Ts, float Tu){
@@ -418,7 +534,7 @@ public class Principal extends javax.swing.JFrame {
         jtaLog.setText(jtaLog.getText() + "┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙\n");
     }
     
-    private void logRemoveProcess(int pID){
+    public static void logRemoveProcess(int pID){
         jtaLog.setText(jtaLog.getText() + "┍━━━━━━━━━━━━━━━━━━━━━━━━━━━━┑\n");
         jtaLog.setText(jtaLog.getText() + "--> Processo ID:"+pID+" excluido." + "\n");
         jtaLog.setText(jtaLog.getText() + "┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙\n");
@@ -446,7 +562,7 @@ public class Principal extends javax.swing.JFrame {
     }
     
     //<editor-fold defaultstate="collapsed" desc=" Processes Table aux. functions ">
-    private static int getRowIndex(int pID){
+    private static int getRowIndex(int pID, DefaultTableModel tableModel){
         String searchedID = ""+pID;
         
         for(int i=0;i<tableModel.getRowCount();++i)
@@ -458,16 +574,16 @@ public class Principal extends javax.swing.JFrame {
         return -1;
     }
     
-    private void centerColumnText(){
+    private static void centerColumnText(JTable table){
         DefaultTableCellRenderer cellRender = new DefaultTableCellRenderer();
         cellRender.setHorizontalAlignment(SwingConstants.CENTER);
 
-        for (int numCol = 0; numCol < jT_processes.getColumnCount(); numCol++) {
-            jT_processes.getColumnModel().getColumn(numCol).setCellRenderer(cellRender);
+        for (int numCol = 0; numCol < table.getColumnCount(); numCol++) {
+            table.getColumnModel().getColumn(numCol).setCellRenderer(cellRender);
         }
     }
     
-    private void setColumnStyle(){
+    private void setColumnStyleProcesses(){
         TableColumnModel tcm = jT_processes.getColumnModel();
         
         tcm.getColumn(0).setMaxWidth(35);
@@ -479,7 +595,7 @@ public class Principal extends javax.swing.JFrame {
     //</editor-fold>
     
     private void addProcessInTable(int pID){     
-        if(!tableCreated){
+        if(!processesTableCreated){
             String[] columns = {
                 "ID",
                 "Status",
@@ -496,13 +612,13 @@ public class Principal extends javax.swing.JFrame {
                 }
             };
             
-            tableModel = new DefaultTableModel(row, columns);
-            jT_processes.setModel(tableModel);
+            tableModelProcesses = new DefaultTableModel(row, columns);
+            jT_processes.setModel(tableModelProcesses);
             
-            centerColumnText();
-            setColumnStyle();
+            centerColumnText(jT_processes);
+            setColumnStyleProcesses();
             
-            tableCreated = true;
+            processesTableCreated = true;
         }
         else{
             Object[] row = {
@@ -512,18 +628,114 @@ public class Principal extends javax.swing.JFrame {
                 "Nenhum"       //Solicitando recursos
             };
             
-            tableModel.addRow(row);
+            tableModelProcesses.addRow(row);
         }
     }
     
-    private void removeProcessInTable(int pID){
-        tableModel.removeRow(getRowIndex(pID));
+    public static void removeProcessInTable(int pID){
+        tableModelProcesses.removeRow(getRowIndex(pID, tableModelProcesses));
     }
     
     public static void setProcessInTable(int pID, String status, String uResources, String sResources){
-        tableModel.setValueAt(status, getRowIndex(pID), 1);
-        tableModel.setValueAt(uResources, getRowIndex(pID), 2);
-        tableModel.setValueAt(sResources, getRowIndex(pID), 3);
+        tableModelProcesses.setValueAt(status, getRowIndex(pID, tableModelProcesses), 1);
+        tableModelProcesses.setValueAt(uResources, getRowIndex(pID, tableModelProcesses), 2);
+        tableModelProcesses.setValueAt(sResources, getRowIndex(pID, tableModelProcesses), 3);
+    }
+    
+    public static void setFreeResourcesTable(){
+        int[] resources = getFreeResources();
+        if(!resourcesTableCreated){
+            String[] columns = {
+                "R1"
+            };
+
+            Object[][] row = {
+                {
+                    ""+resources[0]
+                }
+            };
+
+            tableModelResources = new DefaultTableModel(row, columns);
+            jT_rd.setModel(tableModelResources);
+
+            for(int i=1; i< resources.length; i++){
+                Object[] cData = {""+resources[i]};
+                tableModelResources.addColumn("R"+(i+1), cData);
+            }
+            
+            centerColumnText(jT_rd);
+            
+            resourcesTableCreated = true;
+            
+        }else{
+            for(int i=0; i< resources.length; i++){
+                tableModelResources.setValueAt(""+resources[i], 0, i);
+            }
+        }
+        
+    }
+    
+    private void setAlocationMatrixColumns(){
+        String[] columns = {
+            "pID"
+        };
+        tableModelMatrix = new DefaultTableModel(columns, 0);
+        jT_mra.setModel(tableModelMatrix);
+
+        centerColumnText(jT_mra);
+
+        for(int i=1; i<= resources_qtt; i++){
+            tableModelMatrix.addColumn("R"+i);
+       }
+    }
+    
+    public static void addAlocationMatrixRow(int pID, int[] resources){
+        
+        Object[] row = new Object[resources_qtt+1];
+        row[0] = ""+pID;
+
+        for(int i=1; i<(resources_qtt+1); i++){
+            row[i] = ""+resources[i-1];
+        }
+
+        tableModelMatrix.addRow(row);
+        
+        if(!matrixTableCreated) centerColumnText(jT_mra);
+        
+    }
+    
+    public static void removeAlocationMatrixRow(int pID){
+        tableModelMatrix.removeRow(getRowIndex(pID, tableModelMatrix));
+    }
+    
+    public static void setAlocationMatrixRow(int pID, int[] resources){
+       for(int i=0; i< resources.length; i++){
+           tableModelMatrix.setValueAt(""+resources[i], getRowIndex(pID, tableModelMatrix), i+1);
+       }
+       
+        setFreeResourcesTable();
+    }
+    
+    private void setResourcesTable(int[] resources){
+        String[] columns = {
+            "R1"
+        };
+
+        Object[][] row = {
+            {
+                ""+resources[0]
+            }
+        };
+
+        tableModelResourcesExisting = new DefaultTableModel(row, columns);
+        jT_re.setModel(tableModelResourcesExisting);
+        
+        for(int i=1; i< resources.length; i++){
+            Object[] cData = {""+resources[i]};
+            tableModelResourcesExisting.addColumn("R"+(i+1), cData);
+        }
+        
+        centerColumnText(jT_re);
     }
     
     /**
@@ -689,6 +901,10 @@ public class Principal extends javax.swing.JFrame {
                         
                         Processo temp_process = new Processo(processID, ts, tu);
                         int[] resources = new int[resources_qtt];
+                        for(int i=0; i<resources_qtt; i++){
+                            resources[i] = 0;
+                        }
+                        addAlocationMatrixRow(processID, resources);
                         
                         logAddProcess(processID, ts, tu);
                         addProcessInTable(processID);
@@ -698,12 +914,16 @@ public class Principal extends javax.swing.JFrame {
                             processesUtilizing.set(processID-1, resources);
                             processesRequests.set(processID-1, resources);
                             solicited_rID.set(processID-1, -1);
+                            processIsAlive.set(processID-1, true);
+                            deletingProcessID.set(processID-1, false);
                         }
                         else{
                             processes.add(temp_process);
                             processesUtilizing.add(resources);
                             processesRequests.add(resources);
                             solicited_rID.add(-1);
+                            processIsAlive.add(true);
+                            deletingProcessID.add(false);
                         }
                         
                         temp_process.start();
@@ -776,12 +996,22 @@ public class Principal extends javax.swing.JFrame {
         int result = JOptionPane.showConfirmDialog(null, panel_dProcess, "Exluir Usuário", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if(result == JOptionPane.OK_OPTION){
             int id = IDs.get(jcb_id.getSelectedIndex());
-            boolean retorno = false;
             
+            deletingProcessID.set(id, true);
+            processIsAlive.set(id, false);
             if(solicited_rID.get(id) >= 0 ){
                 resourceSemaphores.get(solicited_rID.get(id)).release();
             }
-            processes.get(id).excluir_processo();
+            
+//            int[] resources = processesUtilizing.get(id);
+//            for(int i=0; i<resources.length; i++){
+//                if(resources[i] > 0){
+//                    resourceSemaphores.get(i).release(resources[i]);
+//                }
+//            }
+            
+            setFreeResourcesTable();
+            
             processes.set(id, null);
             processesRequests.set(id, null);
             processesUtilizing.set(id, null);
@@ -791,9 +1021,6 @@ public class Principal extends javax.swing.JFrame {
                 processesRequests.clear();
                 processesUtilizing.clear();
             }
-            
-            logRemoveProcess(id+1);
-            removeProcessInTable(id+1);
         }
     }
     
@@ -805,6 +1032,16 @@ public class Principal extends javax.swing.JFrame {
             }
         }
     }
+    
+    public static int[] getFreeResources(){
+        int[] vector = new int[resources_qtt];
+        
+        for(int i=0; i<resources_qtt; i++){
+            vector[i] = resourceSemaphores.get(i).availablePermits();
+        }
+        
+        return vector;
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton criar_processo_btn;
@@ -812,11 +1049,21 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JPanel jP_DLlog;
     private javax.swing.JPanel jP_Log;
     private javax.swing.JPanel jP_buttons;
+    private javax.swing.JPanel jP_mra;
     private javax.swing.JPanel jP_processes;
+    private javax.swing.JPanel jP_rd;
+    private javax.swing.JPanel jP_re;
+    private javax.swing.JPanel jP_vr;
     private javax.swing.JScrollPane jSP_DLlog;
     private javax.swing.JScrollPane jSP_Log;
+    private javax.swing.JScrollPane jSP_mra;
     private javax.swing.JScrollPane jSP_processes;
+    private javax.swing.JScrollPane jSP_rd;
+    private javax.swing.JScrollPane jSP_re;
+    private static javax.swing.JTable jT_mra;
     private javax.swing.JTable jT_processes;
+    private static javax.swing.JTable jT_rd;
+    private javax.swing.JTable jT_re;
     private static javax.swing.JTextArea jtaDLlog;
     private static javax.swing.JTextArea jtaLog;
     private javax.swing.JButton sair_btn;
